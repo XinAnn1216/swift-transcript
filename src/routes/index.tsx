@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { Languages, Timer, BadgeCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,7 +40,7 @@ function Index() {
     <div className="min-h-screen bg-hero-glow">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <span className="text-lg font-bold tracking-tight">Video Speed Reader</span>
-        <Button asChild><Link to="/signin">Sign in / 登入</Link></Button>
+        <Link to="/signin" className={buttonVariants({})}>Sign in / 登入</Link>
       </header>
 
       <section className="mx-auto max-w-4xl px-6 pb-24 pt-20 text-center sm:pt-32">
@@ -57,8 +57,8 @@ function Index() {
           Upload your video, get a clean transcript in three minutes.
         </p>
         <div className="animate-fade-up mt-10 flex justify-center gap-3" style={{ animationDelay: "320ms" }}>
-          <Button asChild size="lg" className="shadow-glow"><Link to="/signup">Get started</Link></Button>
-          <Button asChild size="lg" variant="outline"><Link to="/signin">Sign in / 登入</Link></Button>
+          <Link to="/signup" className={buttonVariants({ size="lg" className="shadow-glow"})}>Get started</Link>
+          <Link to="/signin" className={buttonVariants({ size="lg" variant="outline"})}>Sign in / 登入</Link>
         </div>
       </section>
 
