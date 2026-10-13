@@ -57,8 +57,8 @@ function Index() {
           Upload your video, get a clean transcript in three minutes.
         </p>
         <div className="animate-fade-up mt-10 flex justify-center gap-3" style={{ animationDelay: "320ms" }}>
-          <Link to="/signup" className={buttonVariants({ size="lg" className="shadow-glow"})}>Get started</Link>
-          <Link to="/signin" className={buttonVariants({ size="lg" variant="outline"})}>Sign in / 登入</Link>
+          <Link to="/signup" className={buttonVariants({ size: "lg", className: "shadow-glow" })}>Get started</Link>
+          <Link to="/signin" className={buttonVariants({ size: "lg", variant: "outline" })}>Sign in / 登入</Link>
         </div>
       </section>
 
