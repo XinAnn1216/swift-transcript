@@ -26,7 +26,10 @@ export default function AppPage() {
       </header>
       <main className="mx-auto max-w-3xl px-6 py-24 text-center animate-fade-up">
         <h1 className="text-3xl font-bold sm:text-4xl">Hi {user.email}</h1>
-        <p className="mt-4 text-muted-foreground">
+        <p className="mt-4 text-lg">
+          你的逐字稿儀表板即將上線 — 下一個里程碑會加上上傳影片的功能。
+        </p>
+        <p className="mt-2 text-muted-foreground">
           Your dashboard is coming soon. Upload functionality will be added in the next milestone.
         </p>
       </main>
