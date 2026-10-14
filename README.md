@@ -22,3 +22,9 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Deploying to Vercel
+
+This is a static Vite + React Router single-page app. `vite build` writes the site to `dist/`, and `vercel.json` rewrites every path to `/index.html` so deep links such as `/app` load client-side.
+
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the Vercel project's environment variables (or keep them in `.env`); they are inlined at build time.

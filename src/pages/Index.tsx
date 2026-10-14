@@ -1,19 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router";
 import { useEffect, useRef } from "react";
 import { Languages, Timer, BadgeCheck } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Video Speed Reader — 三分鐘拿到逐字稿" },
-      { name: "description", content: "Upload your video, get a clean transcript in three minutes. Powered by OpenAI Whisper." },
-      { property: "og:title", content: "Video Speed Reader — 三分鐘拿到逐字稿" },
-      { property: "og:description", content: "Upload your video, get a clean transcript in three minutes." },
-    ],
-  }),
-  component: Index,
-});
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 const features = [
   { icon: Languages, title: "高準確度逐字稿", en: "High-accuracy transcripts", body: "Powered by OpenAI Whisper, supports Chinese and English." },
@@ -35,7 +24,13 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
   return <div ref={ref} className="reveal h-full" style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
 }
 
-function Index() {
+export default function Index() {
+  usePageMeta(
+    "Video Speed Reader — 三分鐘拿到逐字稿",
+    "Upload your video, get a clean transcript in three minutes. Powered by OpenAI Whisper.",
+    "Upload your video, get a clean transcript in three minutes.",
+  );
+
   return (
     <div className="min-h-screen bg-hero-glow">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">

@@ -1,16 +1,28 @@
-import { QueryClient } from "@tanstack/react-query";
-import { createRouter } from "@tanstack/react-router";
-import { routeTree } from "./routeTree.gen";
+import { createBrowserRouter, type RouteObject } from "react-router";
+import { RootLayout } from "@/components/RootLayout";
+import { RootErrorBoundary } from "@/components/RootErrorBoundary";
+import { NotFound } from "@/components/NotFound";
+import { RequireAuth } from "@/components/RequireAuth";
+import Index from "@/pages/Index";
+import SignIn from "@/pages/SignIn";
+import SignUp from "@/pages/SignUp";
+import AppPage from "@/pages/AppPage";
 
-export const getRouter = () => {
-  const queryClient = new QueryClient();
+export const routes: RouteObject[] = [
+  {
+    element: <RootLayout />,
+    errorElement: <RootErrorBoundary />,
+    children: [
+      { path: "/", element: <Index /> },
+      { path: "/signin", element: <SignIn /> },
+      { path: "/signup", element: <SignUp /> },
+      {
+        element: <RequireAuth />,
+        children: [{ path: "/app", element: <AppPage /> }],
+      },
+      { path: "*", element: <NotFound /> },
+    ],
+  },
+];
 
-  const router = createRouter({
-    routeTree,
-    context: { queryClient },
-    scrollRestoration: true,
-    defaultPreloadStaleTime: 0,
-  });
-
-  return router;
-};
+export const router = createBrowserRouter(routes);
