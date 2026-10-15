@@ -65,7 +65,7 @@ def download_video(url: str, dest_dir: Path) -> Path:
         return existing
     if url.startswith(("http://", "https://")):
         out_template = str(dest_dir / "video.%(ext)s")
-        subprocess.run(["yt-dlp", "--no-playlist", "-o", out_template, url], check=True)
+        subprocess.run(["yt-dlp", "--no-playlist", "--no-progress", "-o", out_template, url], check=True)
         return next(dest_dir.glob("video.*"))
     return Path(url).expanduser().resolve()
 

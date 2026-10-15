@@ -17,7 +17,7 @@ StandardError=append:/var/log/m1-distributor.log
 # with FileNotFoundError: 'yt-dlp'. Prepend the venv bin dir explicitly.
 Environment=PATH=/home/ubuntu/app/worker/venv/bin:/usr/local/bin:/usr/bin:/bin
 Environment=PYTHONUNBUFFERED=1
-# AWS region for boto3 — matches the EC2's region (us-east-1a → us-east-1).
+# AWS region for boto3 — matches the EC2's region (us-east-1c → us-east-1).
 Environment=AWS_DEFAULT_REGION=us-east-1
 
 [Install]
