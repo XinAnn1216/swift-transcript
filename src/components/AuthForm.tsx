@@ -1,12 +1,15 @@
+"use client";
+
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
-import { supabase } from "@/integrations/supabase/client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +20,7 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    const supabase = createClient();
     const { data, error } = isSignUp
       ? await supabase.auth.signUp({
           email,
@@ -26,14 +30,17 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
       : await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return setError(error.message);
-    if (data.session) navigate("/app");
+    if (data.session) {
+      router.push("/app");
+      router.refresh();
+    }
     else setError("Please check your email to confirm your account.");
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-hero-glow px-4">
       <div className="w-full max-w-sm animate-fade-up">
-        <Link to="/" className="mb-8 block text-center text-lg font-bold tracking-tight">
+        <Link href="/" className="mb-8 block text-center text-lg font-bold tracking-tight">
           Video Speed Reader
         </Link>
         <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border bg-card p-8 shadow-glow">
@@ -65,9 +72,9 @@ export function AuthForm({ mode }: { mode: "signin" | "signup" }) {
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             {isSignUp ? (
-              <>Already have an account? <Link to="/signin" className="text-primary hover:underline">Sign in</Link></>
+              <>Already have an account? <Link href="/sign-in" className="text-primary hover:underline">Sign in</Link></>
             ) : (
-              <>No account yet? <Link to="/signup" className="text-primary hover:underline">Sign up</Link></>
+              <>No account yet? <Link href="/sign-up" className="text-primary hover:underline">Sign up</Link></>
             )}
           </p>
         </form>

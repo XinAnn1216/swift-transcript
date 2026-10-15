@@ -1,8 +1,9 @@
-import { Link } from "react-router";
+"use client";
+
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { Languages, Timer, BadgeCheck } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { usePageMeta } from "@/hooks/use-page-meta";
 
 const features = [
   { icon: Languages, title: "高準確度逐字稿", en: "High-accuracy transcripts", body: "Powered by OpenAI Whisper, supports Chinese and English." },
@@ -25,17 +26,11 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 }
 
 export default function Index() {
-  usePageMeta(
-    "Video Speed Reader — 三分鐘拿到逐字稿",
-    "Upload your video, get a clean transcript in three minutes. Powered by OpenAI Whisper.",
-    "Upload your video, get a clean transcript in three minutes.",
-  );
-
   return (
     <div className="min-h-screen bg-hero-glow">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <span className="text-lg font-bold tracking-tight">Video Speed Reader</span>
-        <Link to="/signin" className={buttonVariants({})}>Sign in / 登入</Link>
+        <Link href="/sign-in" className={buttonVariants({})}>Sign in / 登入</Link>
       </header>
 
       <section className="mx-auto max-w-4xl px-6 pb-24 pt-20 text-center sm:pt-32">
@@ -52,8 +47,8 @@ export default function Index() {
           Upload your video, get a clean transcript in three minutes.
         </p>
         <div className="animate-fade-up mt-10 flex justify-center gap-3" style={{ animationDelay: "320ms" }}>
-          <Link to="/signup" className={buttonVariants({ size: "lg", className: "shadow-glow" })}>Get started</Link>
-          <Link to="/signin" className={buttonVariants({ size: "lg", variant: "outline" })}>Sign in / 登入</Link>
+          <Link href="/sign-up" className={buttonVariants({ size: "lg", className: "shadow-glow" })}>Get started</Link>
+          <Link href="/sign-in" className={buttonVariants({ size: "lg", variant: "outline" })}>Sign in / 登入</Link>
         </div>
       </section>
 
