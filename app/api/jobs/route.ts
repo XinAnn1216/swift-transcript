@@ -17,7 +17,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "video_source_url required" }, { status: 400 });
   }
 
-  // 2. Use the Supabase Secret key to insert the job + session rows.
+  // 2. Fast credit floor. The worker does the precise minutes-vs-balance check
+  // once it knows the video's duration.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("credits_balance")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!profile || Number(profile.credits_balance) < 1) {
+    return NextResponse.json(
+      { error: "insufficient credits — please buy more at /credits" },
+      { status: 402 },
+    );
+  }
+
+  // 3. Use the Supabase Secret key to insert the job + session rows.
   // The user has already been authenticated above; the Secret key bypasses RLS
   // so we can insert in one round-trip without policy ping-pong.
   const admin = createAdminClient();

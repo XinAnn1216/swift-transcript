@@ -2,6 +2,10 @@
 M1 worker: processes one job, downloads the video, runs Whisper,
 writes TXT back to job_sessions.subtitle_txt_content.
 
+M2: before Whisper, compares the video's minutes (rounded up) with the user's
+credits; too few -> status 'insufficient_credits' and no Whisper call. On
+'done' it writes a 'deduction' ledger row and lowers profiles.credits_balance.
+
 Started by distributor.py (one Popen per pending job). Reads JOB_ID from env.
 Reads OPENAI_API_KEY / SUPABASE_URL / SUPABASE_SECRET_KEY from AWS Secrets
 Manager — the EC2's IAM instance profile grants `secretsmanager:GetSecretValue`
@@ -56,6 +60,54 @@ def update_job(job_id: str, **fields) -> None:
 
 def update_session(session_id: str, **fields) -> None:
     db.table("job_sessions").update(fields).eq("id", session_id).execute()
+
+
+def probe_duration_minutes_cheap(url: str) -> int | None:
+    """Duration from the source's metadata without downloading, or None when
+    yt-dlp can't tell (it prints 'NA' for many direct mp4 links)."""
+    if not url.startswith(("http://", "https://")):
+        return None
+    try:
+        out = subprocess.run(
+            ["yt-dlp", "--no-playlist", "--no-warnings", "--print", "duration", url],
+            check=True, capture_output=True, text=True, timeout=60,
+        ).stdout.strip()
+        seconds = float(out.splitlines()[0])
+    except (subprocess.SubprocessError, ValueError, IndexError):
+        return None
+    return max(1, math.ceil(seconds / 60))
+
+
+def get_balance(user_id: str) -> float:
+    row = db.table("profiles").select("credits_balance").eq("id", user_id).single().execute().data
+    return float(row["credits_balance"])
+
+
+def block_insufficient(job: dict, minutes: int, balance: float) -> None:
+    """Terminal state: not enough credits. Nothing is charged."""
+    update_job(job["id"], status="insufficient_credits")
+    db.table("credit_transactions").insert({
+        "user_id": job["user_id"],
+        "amount": 0,
+        "type": "deduction",
+        "description": f"Insufficient credits: video is {minutes} min, you have {int(balance)}",
+        "job_id": job["id"],
+    }).execute()
+    print(f"[{job['id']}] insufficient credits: {minutes} min > {balance} credits", flush=True)
+
+
+def deduct_credits(job: dict, minutes: int) -> float:
+    """Ledger row first, then the derived balance (read-then-write; one worker per job)."""
+    db.table("credit_transactions").insert({
+        "user_id": job["user_id"],
+        "amount": -minutes,
+        "type": "deduction",
+        "description": f"Transcribed {minutes} min video",
+        "job_id": job["id"],
+    }).execute()
+    new_balance = max(0.0, get_balance(job["user_id"]) - minutes)
+    db.table("profiles").update({"credits_balance": new_balance}).eq("id", job["user_id"]).execute()
+    return new_balance
 
 
 def download_video(url: str, dest_dir: Path) -> Path:
@@ -148,14 +200,29 @@ def main() -> None:
     job = get_job(job_id)
     session_id = job["current_session_id"]
 
+    # Claim the job first, so a crash below can't make the distributor respawn it.
     update_job(job_id, status="downloading")
-    print(f"[{job_id}] downloading {job['video_source_url']}", flush=True)
 
+    # Credit check, cheap path: duration from metadata, no download.
+    balance = get_balance(job["user_id"])
+    minutes = probe_duration_minutes_cheap(job["video_source_url"])
+    print(f"[{job_id}] duration probe: {minutes} min, balance {balance}", flush=True)
+    if minutes is not None and minutes > balance:
+        return block_insufficient(job, minutes, balance)
+
+    print(f"[{job_id}] downloading {job['video_source_url']}", flush=True)
     # Per-job working dir, kept after the job ends so a re-run skips the download.
     work_dir = Path("/tmp") / job_id
     work_dir.mkdir(parents=True, exist_ok=True)
     video = download_video(job["video_source_url"], work_dir)
     mp3 = to_mp3(video, work_dir)
+
+    # Credit check, fallback: exact duration from the file when metadata had none.
+    if minutes is None:
+        minutes = max(1, math.ceil(get_duration_seconds(mp3) / 60))
+        print(f"[{job_id}] ffprobe duration: {minutes} min", flush=True)
+        if minutes > balance:
+            return block_insufficient(job, minutes, balance)
 
     update_job(job_id, status="transcribe")
     chunks = split_chunks(mp3, work_dir)
@@ -166,9 +233,10 @@ def main() -> None:
     )
 
     update_session(session_id, subtitle_txt_content=full_text)
+    new_balance = deduct_credits(job, minutes)
     update_job(job_id, status="done")
 
-    print(f"[{job_id}] done — {len(full_text)} chars", flush=True)
+    print(f"[{job_id}] done — {len(full_text)} chars, charged {minutes} credits, balance {new_balance}", flush=True)
 
 
 if __name__ == "__main__":

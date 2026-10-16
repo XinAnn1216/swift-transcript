@@ -17,6 +17,8 @@ const statusStyles: Record<string, string> = {
   downloading: "bg-muted text-muted-foreground",
   transcribe: "bg-accent text-accent-foreground",
   done: "bg-secondary text-secondary-foreground",
+  insufficient_credits: "bg-destructive/10 text-destructive",
+  error: "bg-destructive/10 text-destructive",
 };
 
 function truncate(text: string, max = 50) {
@@ -79,7 +81,11 @@ export default async function UploadPage() {
                         </span>
                       </td>
                       <td className="py-3">
-                        {job.status === "done" ? (
+                        {job.status === "insufficient_credits" ? (
+                          <a href="/credits" className="font-medium text-primary hover:underline">
+                            Buy credits
+                          </a>
+                        ) : job.status === "done" ? (
                           <a
                             href={`/api/jobs/${job.id}/transcript`}
                             download={`transcript-${job.id.slice(0, 8)}.txt`}
